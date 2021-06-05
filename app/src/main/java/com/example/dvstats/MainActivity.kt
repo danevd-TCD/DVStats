@@ -69,7 +69,6 @@ fun MainApp(names: List<String> = List(15) {"Hello user #$it"}, i_userFiles: Lis
 }
 
 class MainActivity : ComponentActivity() {
-
     companion object {
         lateinit var instance: MainActivity
     }
@@ -93,7 +92,8 @@ fun writeTestText(inputFieldList:MutableList<String>){
     val file = File(MainActivity.instance.filesDir, filename)
     file.createNewFile()
     //writing json data here, code in syntax by hand or use gson/etc?
-    file.writeText(inputFieldList[1])
+    //DANGER!! Manually writing json syntax here, definitely use gson/Jsonreader after POC stage!!
+    file.writeText("{\n"+ "\"Name\":"+ "\"" + filename + "\",\n"+ "\"URL\":" + "\""+inputFieldList[1] +"\"" + "\n}")
 
 }
 
@@ -104,8 +104,9 @@ fun getDataDirFiles(getFilesContext: Context): List<String> {
         dataDir.mkdir()
     }
     val fileList = mutableListOf<String>()
-    //iterate through data directory and append each item name to fileList
-    dataDir.walk().forEach { fileList.add(it.toString()) }
+    //walk each file in dir, and look for .json files by reversing each string and scanning the last 5
+    //chars for ".json" backwards... there's got to be a more elegant way, but hey, it works for now
+    dataDir.walk().forEach { if (it.toString().reversed().substring(0,5) == "nosj.") {fileList.add(it.toString()) }}
 
     return fileList
 }
