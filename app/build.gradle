@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    //id 'org.jetbrains.kotlin.jvm'// version '1.5.10'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.10'
 }
 
 android {
@@ -66,6 +68,8 @@ dependencies {
     //for Coroutines
     implementation "com.github.kittinunf.fuel:fuel-coroutines:2.3.1"
 
+    //kotlin serialisation
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1'
     /*
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.7.2'

@@ -36,7 +36,8 @@ import com.github.kittinunf.fuel.httpGet
 import kotlinx.coroutines.launch
 //import com.example.dvstats.MyApplication.Companion.appContext
 import java.io.File
-
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
 @Composable
 fun MainApp(names: List<String> = List(15) {"Hello user #$it"}, i_userFiles: List<String>? = getDataDirFiles( MainActivity.instance ))
@@ -68,6 +69,8 @@ fun MainApp(names: List<String> = List(15) {"Hello user #$it"}, i_userFiles: Lis
     }
 }
 
+
+
 class MainActivity : ComponentActivity() {
     companion object {
         lateinit var instance: MainActivity
@@ -92,10 +95,35 @@ fun writeTestText(inputFieldList:MutableList<String>){
     val file = File(MainActivity.instance.filesDir, filename)
     file.createNewFile()
     //writing json data here, code in syntax by hand or use gson/etc?
-    //DANGER!! Manually writing json syntax here, definitely use gson/Jsonreader after POC stage!!
-    file.writeText("{\n"+ "\"Name\":"+ "\"" + filename + "\",\n"+ "\"URL\":" + "\""+inputFieldList[1] +"\"" + "\n}")
-
+    //file.writeText("{\n"+ "\"Name\":"+ "\"" + filename + "\",\n"+ "\"URL\":" + "\""+inputFieldList[1] +"\"" + "\n}")
+    file.writeText(varsToJson(inputFieldList[0],inputFieldList[1]))
 }
+
+//https://github.com/Kotlin/kotlinx.serialization#android for original
+
+//define data class for json writing here
+@Serializable
+data class API_Json(val Name: String, val URL: String)
+
+//serialise input data from API_Json format into json data and return as string to print/write/etc
+fun varsToJson(name: String, url: String): String {
+    // Pass args and set up as data class for encoding
+    val data = API_Json(Name = name,URL = url)
+    val string = Json.encodeToString(data)
+
+    return string
+}
+
+//read a specified json file, return string? or maybe multiple vars? I dunno yet
+//n.b we decode using the same data class we encoded with in varsToJson
+
+fun readJson(fileLoc: String): API_Json {
+    val jsonFile = File(fileLoc).readText(Charsets.UTF_8) //read entire json file into a string
+    val JsonAsString = Json.decodeFromString<API_Json>(jsonFile) //parse json file
+    return JsonAsString
+    //can then access elements with JsonAsString.name or JsonAsString.language, i think?
+}
+
 
 //get all files in app filesDir
 fun getDataDirFiles(getFilesContext: Context): List<String> {
@@ -111,14 +139,28 @@ fun getDataDirFiles(getFilesContext: Context): List<String> {
     return fileList
 }
 
-
-
 //get all files in filesDir and make lazy columns
 @Composable
-fun DataList(userFiles: List<String>, modifier: Modifier = Modifier) {
+fun DataList(userFiles: List<String>, modifier: Modifier = Modifier)
+{
+    //val coroutineScope = rememberCoroutineScope()
+
     LazyColumn(modifier = modifier) {
         items(items = userFiles) { data ->
-            Text(text = data)
+            //Text(text = data)
+            Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                val tempJsonObject = readJson(data)
+
+                //
+
+                //
+
+                Text(text = "Name: " + tempJsonObject.Name + "\nURL: " + tempJsonObject.URL)
+                Button(onClick = { }) {
+                    Text(text = "Query ${tempJsonObject.Name}")
+                }
+            }
+
             Divider(color = Color.Black)
         }
 
