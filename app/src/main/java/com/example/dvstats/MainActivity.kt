@@ -46,21 +46,29 @@ class MainActivity : ComponentActivity() {
 fun MainApp()
 {
     val initialResponse = remember  { mutableStateOf("Initial")} //initial API string
-    var curFileName = remember {mutableStateListOf<String>()} //
+    val initial_Num = remember {mutableStateOf("0")}
 
     DVStatsTheme {
         Surface(color = MaterialTheme.colors.background) {
             Column {
+                /*
                 ButtonCall( text_Reponse = initialResponse.value,
                             updateAPIString = {newString -> initialResponse.value = newString})
+
+                 */
+                /*
                 WriteCall(  text = curFileName,
                             updateFileText =    {
                                     newFileName -> curFileName = newFileName as SnapshotStateList<String>;
                                     writeTestText(curFileName)
                                                 })
-                DataList(   userFiles = getDataDirFiles( MainActivity.instance ),
+                 */
+                DataList(   //userFiles = getDataDirFiles( MainActivity.instance ),
                             updateAPIString = { newString -> initialResponse.value = newString},
-                            text_Reponse = initialResponse.value)
+                            text_Response = initialResponse.value,
+                            numConfigs = initial_Num.value,
+                            numConfigs_update = { newNum ->  initial_Num.value = newNum}
+                        )
             }
         }
     }
@@ -109,20 +117,48 @@ fun getDataDirFiles(getFilesContext: Context): List<String>
     return fileList
 }
 
-
 //get all files in filesDir and make lazy columns
 @Composable
-fun DataList(userFiles: List<String>, modifier: Modifier = Modifier, updateAPIString: (String) -> Unit, text_Reponse: String)
+fun DataList(modifier: Modifier = Modifier,
+             updateAPIString: (String) -> Unit,
+             text_Response: String,
+             numConfigs: String,
+             numConfigs_update: (String) -> Unit
+             )
 {
 
-    val lazyElements = remember{ mutableStateListOf<String>() }
-    for (i in getDataDirFiles(MainActivity.instance))
-    {
-        lazyElements.add(i)
+    //var curFileName: SnapshotStateList<String> //
+    var curFileName = remember {mutableStateListOf<String>()} //
+
+    WriteCall(  text = curFileName,
+                updateFileText =
+                {
+                    newFileName -> curFileName = newFileName as SnapshotStateList<String>;
+                    writeTestText(curFileName)
+                })
+
+    Divider()
+    
+    var lazyElements = remember{ mutableStateListOf<String>() }
+    fun lazyElementsScan(): SnapshotStateList<String> {
+        lazyElements = mutableStateListOf<String>() //reset to 0 every time scan is performed
+        for (i in getDataDirFiles(MainActivity.instance))
+        {
+            lazyElements.add(i)
+        }
+        return lazyElements
+    }
+
+
+    Column() {
+        Text(text = "Number of configs found: " + numConfigs)
+        Button(onClick = { numConfigs_update(lazyElementsScan().size.toString()) }) {
+            Text(text = "Update")
+        }
     }
 
     LazyColumn(modifier = modifier) {
-        items(items = lazyElements) { data ->
+        items(items = lazyElementsScan()) { data ->
 
             val coroutineScope = rememberCoroutineScope()
 
@@ -141,7 +177,7 @@ fun DataList(userFiles: List<String>, modifier: Modifier = Modifier, updateAPISt
                     Text(text = "Query ${tempJsonObject.Name}")
 
                 }
-                Text(text = text_Reponse)
+                Text(text = text_Response)
             }
 
             Divider(color = Color.Black)
@@ -177,9 +213,10 @@ fun WriteCall(text: List<String>, updateFileText: (List<String>) -> Unit)
         //eventually add more fields for e.g arguments or authorisation
 
         Button(onClick = {
-            fieldList.add(API_name);
-            fieldList.add(API_url);
-            updateFileText(fieldList) })
+            fieldList.add(API_name)
+            fieldList.add(API_url)
+            updateFileText(fieldList)
+        })
             { Text("Save file") }
     }
 
