@@ -62,7 +62,7 @@ fun MainApp(names: List<String> = List(15) {"Hello user #$it"}, i_userFiles: Lis
                     curFileName
                 )})
                 if (i_userFiles != null) {
-                    DataList(userFiles = i_userFiles)
+                    DataList(userFiles = i_userFiles, updateAPIString = {newString -> initialResponse.value = newString},text_Reponse = initialResponse.value)
                 }
             }
         }
@@ -141,24 +141,48 @@ fun getDataDirFiles(getFilesContext: Context): List<String> {
 
 //get all files in filesDir and make lazy columns
 @Composable
-fun DataList(userFiles: List<String>, modifier: Modifier = Modifier)
+fun DataList(userFiles: List<String>, modifier: Modifier = Modifier, updateAPIString: (String) -> Unit, text_Reponse: String)
 {
     //val coroutineScope = rememberCoroutineScope()
 
     LazyColumn(modifier = modifier) {
         items(items = userFiles) { data ->
             //Text(text = data)
+
+            //
+            val coroutineScope = rememberCoroutineScope()
+
+
+            /*
+            Column(modifier = Modifier.padding(16.dp)) {
+                //Button(onClick = { updateAPIString(fuelCall("https://www.danev.xyz/status/all").toString()) })
+                Button(onClick = scopedUpdateAPIString )
+                {
+                    Text("Make API call")
+                }
+                Text(text = text_Reponse)
+            }
+
+             */
+
+            //
+
             Row(horizontalArrangement = Arrangement.SpaceBetween) {
                 val tempJsonObject = readJson(data)
 
-                //
-
-                //
+                val scopedUpdateAPIString: () -> Unit = {
+                    coroutineScope.launch {
+                        val scopedFuelVal = fuelCall("https://"+tempJsonObject.URL)
+                        updateAPIString(scopedFuelVal)
+                    }
+                }
 
                 Text(text = "Name: " + tempJsonObject.Name + "\nURL: " + tempJsonObject.URL)
-                Button(onClick = { }) {
+                Button(onClick = scopedUpdateAPIString) {
                     Text(text = "Query ${tempJsonObject.Name}")
+
                 }
+                Text(text = text_Reponse)
             }
 
             Divider(color = Color.Black)
